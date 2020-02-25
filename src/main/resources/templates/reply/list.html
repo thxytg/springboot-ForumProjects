@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title> 我的论坛 </title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+
+		<script th:src="@{/js/jquery.min.js}"></script>
+		<script th:src="@{/js/afquery.js}"></script>
+		<link rel="stylesheet" th:href="@{/css/common.css}" />
+
+		<style>
+			body {
+				background-color: #F6F7FB;
+			}
+
+			/* 正文内容显示 */
+			pre {
+				background-color: #fff;
+				padding: 10px 20px;
+				min-height: 60px;
+				color: #222;
+			}
+
+			.ref {
+				min-height: 240px;
+			}
+
+			/* 原文 */
+			.ref .msginfo {
+				position: relative;
+				padding: 6px;
+				padding-left: 60px;
+				background-color: #fcfcfc;
+			}
+
+			/* 表格形式的回复显示 */
+			.reply {
+				width: 100%;
+				border: 1px solid #f1f1f1;
+				background-color: #fff;
+				margin-top: 4px;
+			}
+
+			.reply .item {
+				border-bottom: 1px solid #f1f1f1;
+				font-size: 14px;
+			}
+
+			.reply td {
+				border-width: 0px;
+			}
+
+			.reply .c1 {
+				padding: 6x;
+				text-align: center;
+				width: 120px;
+				background-color: #fcfcfc;
+			}
+
+			.reply .c2 {
+				padding: 6x;
+				text-align: left;
+				width: calc(100% - 124px);
+			}
+
+			.reply .author {
+				color: #3078c2;
+			}
+
+			.reply .usericon {
+				width: 40px;
+				margin: 4px 0 8px 0;
+			}
+				/* 附件图片 */	
+			.attachment{
+				max-width: 90%;
+				max-height: 400px;
+				margin: 10px;
+				text-align: center;;
+			}
+			
+			/* 管理操作 */
+			.manage{
+				display: none;
+				padding:3px;
+				margin:3px;
+				text-align: right;
+			}
+			.manage button {
+				font-size:12px;
+				padding:3px 6px;
+				background-color: #c0d3fb;
+				border-color: #c0d3fb;
+				margin-left: 10px;
+			}
+		</style>
+	</head>
+	<body>
+
+		<div class='main container'>
+			<div class='pad' style='padding:10px;border-bottom:1px solid #f4f4f4'>
+				<a th:href='@{/message/list}'>
+					<img th:src='@{/img/back.png}' style='width:16px;transform:translateY(4px)'> 返回版面
+				</a>
+			</div>
+
+			<!-- 原文 -->
+			<div class='ref'>
+				<div class='msginfo'  >
+					<div th:switch='${ref.thumb==null}'>
+						<img class='vcenter usericon' th:case='false' th:src='${ref.thumb}' style='width:36px;left:10px'>
+						<img class='vcenter usericon' th:case='true' th:src='@{/img/user.jpg}' style='width:36px;left:10px'>
+					</div>
+					
+					<span class='author'>[[${ref.userName}]]</span>
+					<br>
+					<span style='color:#888'>楼主</span> &nbsp;&nbsp;
+					<span style='color:#888'>[[${#strings.substring(ref.timeCreate,0,16)}]]</span>
+				</div>
+				<pre th:text='${ref.content}' style='padding-left:60px'></pre>
+			</div>
+			<!-- 附件图片显示 -->
+			<div style='padding:10px 20px;text-align: center;'>
+				<a th:if='${ref.img1.length()>0}' th:href="@{'/img2/'+${ref.storePath}+${ref.img1}}" target='_self'>
+					<img class='attachment' th:src="@{'/img2/'+${ref.storePath}+${ref.img1}}" />
+				</a> <br>
+				<a th:if='${ref.img2.length()>0}' th:href="@{'/img2/'+${ref.storePath}+${ref.img2}}" target='_self'>
+					<img class='attachment' th:src="@{'/img2/'+${ref.storePath}+${ref.img2}}" />
+				</a> <br>
+				<a th:if='${ref.img3.length()>0}' th:href="@{'/img2/'+${ref.storePath}+${ref.img3}}" target='_self'>
+					<img class='attachment' th:src="@{'/img2/'+${ref.storePath}+${ref.img3}}" />
+				</a>
+			</div>
+
+			<div style='text-align: left; font-size:13px;color:#555'>
+				<span style='margin:10px'>共 [[${#lists.size(messageList)}]] 条回复</span>
+						<!-- 用户操作 -->
+				<div class='useractions' style='display:inline-block;'	
+					th:rowid='${ref.id}' th:if='${session.user!=null && ref.creator.intValue()== session.user.id}' >
+					
+					<a href='javascript:void(0)' onclick="my.userSetFlags(this, 'del', 'back')"	>删帖</a>
+					
+				</div>	
+				<!-- 检查数据库里的 isAdmin，别有null值 -->			
+				<a th:if='${session.user!=null && session.user.isAdmin!=null && session.user.isAdmin}' 
+						style='margin: 0 10px;'
+						href='javascript:void(0)' onclick="$('.manage').show()"> 管理 </a>
+			</div>
+			
+			<!-- 帖子管理操作 -->
+			<div th:if='${session.user!=null && session.user.isAdmin!=null && session.user.isAdmin}'
+					class='manage' th:rowid='${ref.id}' >
+				
+				<button onclick="my.suSetFlags(this,'top', 'reload')" > 置顶 </button>
+				<button onclick="my.suSetFlags(this,'nice', 'reload')" > 加精 </button>
+				<button onclick="my.suSetFlags(this,'del', 'back')" > 删除 </button>
+								
+			</div>	
+			
+		</div>
+
+		<!-- 回复列表 -->
+		<div class='container'>
+			<!-- PC上以表格显示 -->
+			<table class='reply'>
+				<tr class='item' th:each=" row , state: ${messageList} ">
+					<td class='c1'  style='vertical-align: top;padding:6px'>
+						<img class='usericon'th:src='${row.thumb}'><br>
+						<span class='author'>[[${row.userName}]]</span> <br>
+					</td>
+					<td class='c2'>
+						<pre th:text='${row.content}'></pre>
+						<div style='text-align: right;padding: 6px'>
+							<span style='color:#666'>第[[${baseIndex+state.index+1}]]楼</span> &nbsp;&nbsp;
+							<span style='color:#666'>[[${#strings.substring(row.timeCreate,0,16)}]]</span>
+						</div>
+					</td>
+				</tr>
+			</table>
+
+			<div style='padding:10px'>
+				<div class='page-index-bar' style='margin:0px'></div>
+
+				<!-- 如未登录,则提示登录 -->
+				<div class='pad' style='padding:10px'>
+					<div th:if="${session.user==null}">
+						请先 <a href='javascript:void(0)' onclick='pleaseLogin()'>登录</a> 之后才能发表评论
+					</div>
+					<div th:if="${session.user!=null}">
+						<div class='row '>
+							<button class='primary' onclick='jump()'> 回复 </button>
+						</div>
+						<!-- 				<div class='row '>
+				    <a class='primary' th:href='@{/u/reply/add(messageId=${ref.id})}'> 回复 </a>
+				</div> -->
+					</div>
+					<script>
+						window.pleaseLogin = function() {
+							location.href = '[[@{/login}]]' + '?returnUrl=' + location.href;
+						}
+						window.jump = function() {
+							var messageId = getUrlParameter('messageId');
+							location.href = '/u/reply/add?messageId=' + messageId;
+						}
+
+						function getUrlParameter(name) {
+							name = name.replace(/[]/, "\[").replace(/[]/, "\[").replace(/[]/, "\\\]");
+							var regexS = "[\\?&]" + name + "=([^&#]*)";
+							var regex = new RegExp(regexS);
+							var results = regex.exec(window.parent.location.href);
+							if (results == null) return "";
+							else {
+								return results[1];
+							}
+						};
+					</script>
+				</div>
+
+
+
+			</div>
+		</div>
+
+
+		<br><br><br>
+
+	</body>
+
+	<script>
+		var my = {};
+		my.msgId = [[${ref.id}]];
+
+		var pageCount = [[${pageCount}]];
+		var pageNumber = [[${pageNumber}]];
+		var pageUrl = '[[@{/reply/list}]]';
+
+		// 初始化执行: 分页显示
+		my.initPage = function() {
+			var str = "";
+			var skipped = false;
+			for (var i = 1; i <= pageCount; i++) {
+				// 如果页面数过多，则添加一个省略号
+				if (i < pageNumber - 2 && i >= 2) {
+					if (!skipped) str += "...";
+					skipped = true;
+					continue;
+				}
+				if (i > pageNumber + 2 && i <= pageCount - 1) {
+					if (!skipped) str += "...";
+					skipped = true;
+					continue;
+				}
+				skipped = false;
+
+				// 当前页码： 以高亮显示
+				if (i == pageNumber)
+					str += "<label class='page static'> ##1 </label>".replace(/##1/g, i);
+				else
+					str += "<a class='page' href='##0?pageNumber=##1'> ##1 </a>"
+					.replace(/##0/g, pageUrl)
+					.replace(/##1/g, i);
+
+				$('.page-index-bar').html(str);
+			}
+		}(); // 立即执行 my.initPage()
+		
+				// 给缺失的头像<img>元素设置默认的图片显示
+				$('img.usericon').each( function(index, elem){
+					var src = $(elem).attr('src');
+					if(src == null || src.length==0)
+						$(elem).attr('src', '[[@{/img/user.jpg}]]')	;		
+				})
+				
+		// 用户操作: 删除自己的帖子
+		my.userSetFlags = function(dom, cmd, action){
+			var promptText = $(dom).text();
+			if(! confirm('确认操作: ' + promptText + '?')) return;
+			
+			var rowid = Number( $(dom).parent().attr('rowid') );
+			var req = {};
+			req.msgId = rowid;
+			req.cmd = cmd;
+			Af.rest('[[@{/u/message/userSetFlags.do}]]', req, function(data){				
+				if(action=='back') location.href='[[@{/message/list}]]' ;  // 仅仅返回还不够,还得刷新一下
+				if(action=='reload') location.reload();
+			})
+		}
+		
+		// 管理操作: 置顶/加精/删除
+		my.suSetFlags = function(dom, cmd, action){
+			var promptText = $(dom).text();
+			if(! confirm('确认操作: ' + promptText + '?')) return;
+			
+			var rowid = Number( $(dom).parent().attr('rowid') );
+			var req = {};
+			req.msgId = rowid;
+			req.cmd = cmd;
+			Af.rest('[[@{/u/message/suSetFlags.do}]]', req, function(data){				
+				if(action=='back') location.href='[[@{/message/list}]]' ;  // 仅仅返回还不够,还得刷新一下
+				if(action=='reload') location.reload();
+			})
+		}	
+	</script>
+</html>

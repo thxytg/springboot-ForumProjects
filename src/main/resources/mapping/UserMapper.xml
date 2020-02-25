@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.zxz.bbs.mapper.UserMapper">
+
+    <insert id="addUser" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `user`
+        (`id`, `name`, `password`, `qqid`, `qq`, `qqFlag`, `qqName`, `email`, `emailFlag`, `phone`, `phoneFlag`, `thumb`, `level`, `vip`, `vipName`, `isAdmin`, `timeCreate`, `timeUpdate`, `timeLogin`)
+        VALUES(#{id}, #{name}, #{password}, #{qqid}, #{qq}, #{qqFlag}, #{qqName}, #{email}, #{emailFlag}, #{phone}, #{phoneFlag}, #{thumb}, #{level}, #{vip}, #{vipName}, #{isAdmin}, #{timeCreate}, #{timeUpdate}, #{timeLogin})
+
+    </insert>
+
+    <select id="getOneUser" resultType="User">
+        SELECT *FROM USER WHERE NAME=#{name} AND PASSWORD=#{password}
+    </select>
+
+    <update id="changePassWord">
+    UPDATE USER SET PASSWORD=#{password} WHERE id=#{id}
+    </update>
+
+    <update id="replaceUserPhoto" >
+     UPDATE USER SET thumb=#{thumb} WHERE id=#{id}
+
+    </update>
+
+    <select id="getUserFromId" resultType="User">
+        SELECT *FROM USER WHERE id=#{id}
+    </select>
+
+    <select id="addUserAbility" resultType="UserAbility">
+        INSERT INTO `user_ability`
+        (`userId`, `banFlag`, `banDate`, `imageCount`, `imageMax`, `msgCount`, `msgMax`, `replyCount`, `replyMax`)
+          VALUES(#{userId}, #{banFlag}, #{banDate}, #{imageCount}, #{imageMax}, #{msgCount}, #{msgMax}, #{replyCount}, #{replyMax})
+    </select>
+
+    <select id="getUserAbilityFromUserId" resultType="UserAbility">
+        select*from user_ability where userId=#{userId}
+    </select>
+    
+
+
+
+
+
+
+
+</mapper>

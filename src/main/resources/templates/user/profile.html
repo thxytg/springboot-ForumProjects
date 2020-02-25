@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="utf-8">
+		<title>我的论坛</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+
+		<script th:src="@{/js/jquery.min.js}"></script>
+		<script th:src="@{/js/afquery.js}"></script>
+		<link rel="stylesheet" th:href="@{/css/common.css}" />
+
+		<style>
+
+
+			.main{
+            margin: 40px auto auto auto;
+            background-color: #fcfcfc;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .head{
+            position: relative;
+            padding: 2px 2px ;
+            border-bottom: 1px solid #f1f1f1;
+            background-color: #fcfcfc;
+            text-align: center;
+            height: 50px;
+            line-height: 46px;
+        }
+
+        .label{
+            display: inline-block;
+            width: 100px;
+            text-align: right;
+        }
+
+        .profile{
+            width:100%;
+            border-color:#f1f1f1;
+        }
+        .profile .c1{
+            width: 100px;
+            padding: 10px;
+            color:#888;
+            text-align: right;
+        }
+        .profile .c2{
+            padding: 10px 0 10px 30px;
+            background-color: #fff;
+            text-align: left;
+        }
+
+        /* 头像 */
+        .thumbbox{
+            display: inline-block;
+            margin: 10px 10px 10px 0px;
+            position: relative;
+            border: 1px dotted #ccc;
+            border-radius: 1px;
+            width: 80px;
+            height: 80px;
+            background-color: #fcfcfc;
+        }
+        .thumbbox .thumb{
+            width:100%;
+            height:100%;
+            cursor: pointer;
+        }
+
+        .exit{
+            display: inline-block;
+            background-color: #fd4d25;
+            color: #fff;
+            padding:10px;
+            margin: 2px;
+            border-radius: 4px;
+        }
+    </style>
+	</head>
+	<body>
+		<div th:replace=" ~{common::header}"></div>
+
+		<div class='container'>
+			<div class='main'>
+				<div class='head'>
+					<img th:src='@{/img/edit.png}' style='width:14px'> &nbsp;
+					用 户 资 料
+				</div>
+
+				<table class='profile'>
+					<tr>
+						<td class='c1'> 用户ID: </td>
+						<td class='c2'>
+							<span th:text='${user.id}'></span>
+						</td>
+					</tr>
+					<tr>
+						<td class='c1'> 昵称: </td>
+						<td class='c2'>
+							<span class='name' th:text='${user.name}'></span>
+						</td>
+					</tr>
+					<tr>
+						<td class='c1'> 安全: </td>
+						<td class='c2'>
+							<a th:href='@{/u/profile/password}'>更改密码</a>
+						</td>
+					</tr>
+					<tr>
+						<td class='c1'> 头像: </td>
+						<td class='c2'>
+							<input class='hidden upload' type='file' onchange='my.selectFileOK(this)' />
+							<div class='thumbbox' th:switch='${user.thumb==null}'>
+								<img class='thumb' th:case='false' th:src='${user.thumb}' onclick='my.thumbClick(this)'>
+								
+								<img class='thumb' th:case='true' th:src='@{/img/user.jpg}' onclick='my.thumbClick(this)'>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<td class='c1'> 发文限制: </td>
+						<td class='c2'>
+							今天剩余 [[${userAbility.msgCount}]] 次
+						</td>
+					</tr>
+					<tr>
+						<td class='c1'> 图片限制: </td>
+						<td class='c2'>
+							今天剩余 10 次
+						</td>
+					</tr>
+					<tr>
+						<td class='c1'> 回复限制: </td>
+						<td class='c2'>
+							今天剩余 20 次
+						</td>
+					</tr>
+					<tr>
+						<td class='c1'> &nbsp; </td>
+						<td class='c2'>
+							<a th:href='@{/logout}' class='exit'>退出登录</a>
+						</td>
+					</tr>
+
+				</table>
+
+			</div>
+
+		</div>
+		<!-- <script>
+			var my = {};
+
+			my.setName = function() {
+				var req = {};
+				req.name = $('.name').val().trim();
+				if (req.name.length == 0) {
+					alert('请输入名字');
+					return;
+				}
+
+				Af.rest('[[@{/u/profile/setName.do}]]', req, function(data) {
+					alert('操作成功!');
+					location.reload();
+				})
+			}
+		</script> -->
+		<script>
+			var my = {};
+
+
+			/* 头像上传 */
+			my.thumbClick = function(dom) {
+				$('.upload').click(); // 模拟点击file控件
+				$('.upload')[0].target = dom; // dom指的是 <img>控件 
+			}
+
+			my.selectFileOK = function(button) {
+				var file = button.files[0];
+				button.value = ''; // 清除file button的选择		
+				var thumb = button.target; // <img>控件
+
+				// 后缀检查
+				var type = file.type;
+				if (type != 'image/jpeg' && type != 'image/png') {
+					alert('不支持的类型' + type);
+					return
+				}
+				if (file.size > 500 * 1000) {
+					alert('图片太大,不得大于500KB!')
+				}
+
+				/* 开始上传 */
+				var uploader = new AfUploader();
+				uploader.uploadUrl = '[[@{/u/profile/setPhoto.do}]]'; // 服务URL
+				uploader.file = file; // 文件对象
+				uploader.args = {
+					'your_args': 'arg_value'
+				};
+
+				uploader.startUpload();
+				// 上传完成事件处理
+				uploader.processEvent = function(event) {
+					if (event == 'complete') {
+						var result = JSON.parse(this.response);
+						if (result.error != 0) {
+							alert(result.reason);
+							return; // 不允许上传
+						}
+
+						// 显示一条上传记录
+						var data = result.data;
+						$(thumb).attr('src', data.tmpUrl);
+					}
+				}
+			}
+		</script>
+	</body>
+</html>

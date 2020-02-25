@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <script th:src="@{/js/jquery.min.js}" ></script>
+    <script th:src="@{/js/afquery.js}" ></script>
+    <link rel="stylesheet" th:href="@{/css/common.css}" />
+
+</head>
+<body>
+
+<div th:fragment='header' class='header container' >
+	
+    <div class='left'>
+		<a href="http://localhost:8080/message/list" target="-blank" title="论坛首页">
+		 <img th:src='@{/img/logo.png}' style='height:30px'	>
+		</a>
+    </div>
+
+    <div class='right'>
+			<span th:switch='${session.user!=null}' class='item' style='position: relative;padding-left: 20px;'>
+				<a th:case='true' th:href='@{/u/profile/edit}' >
+					<img class='vcenter' th:src='@{/img/user2.png}'  > [[${session.user.name}]]
+				</a>
+
+				<a th:case='false' href='javascript:void(0)' onclick='pleaseLogin()'>请登录</a>
+				<script>
+					window.pleaseLogin =function(){
+                        location.href = '[[@{/login}]]' + '?returnUrl=' + location.href;
+                    }
+				</script>
+			</span>
+    </div>
+</div>
+
+
+
+</body>
+
+</html>

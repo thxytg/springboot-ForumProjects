@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    username: root
+    password:
+    url: jdbc:mysql://127.0.0.1:3306/af_bbs?characterEncoding=UTF-8&serverTimezone=UTC
+
+
+mybatis:
+  mapper-locations: classpath:mapping/*.xml
+  type-aliases-package: com.zxz.bbs.pojo

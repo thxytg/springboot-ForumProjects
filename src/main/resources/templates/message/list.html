@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="utf-8">
+		<title> 我的论坛 </title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+
+		<script th:src="@{/js/jquery.min.js}"></script>
+		<script th:src="@{/js/afquery.js}"></script>
+		<link rel="stylesheet" th:href="@{/css/common.css}" />
+
+		<style>
+			body{
+				background-color: #F6F7FB;
+			}
+
+			.list{
+				border: 1px solid #f1f1f1;
+			}
+			.list .topbar{
+				background-color: #fcfcfc;
+				border-bottom: 1px dotted #f1f1f1;
+				padding: 10px;
+			}
+			.list .bottombar{
+				border-top: 0px solid #f1f1f1;
+				padding: 10px;
+			}
+			.list .item{
+				border-bottom: 1px dotted #f1f1f1;
+				padding: 8px 4px;
+			}
+			/* 列表的4列显示, c1,c2,c3,c4 */
+			.list .c1{
+				display: inline-block;
+				width: 60px;
+				vertical-align: top;
+				text-align: center;
+			}
+			.list .c2{
+				display: inline-block;
+				width: calc(100% - 280px - 20px);
+				vertical-align: top;
+			}
+			.list .c3{
+				display: inline-block;
+				width: 120px;
+				vertical-align: top;
+				text-align: center;
+				font-size: 13px;
+				overflow: hidden;
+				white-space: nowrap;
+			}
+			.list .c4{
+				display: inline-block;
+				width: 100px;
+				vertical-align: bottom;
+				text-align: center;
+				font-size: 13px;
+			}
+			/* 回复数 */
+			.list .replycount {
+				display: inline-block;
+				border-radius:2px;
+				background-color: #fcfcfc;
+				border: 1px solid #f1f1f1;
+				font-size:12px;
+				color: #666;
+				width: 30px;
+				padding:3px 0;
+			}
+	
+		</style>
+	</head>
+	<body>
+	<div th:insert=" ~{common::header}"></div>
+
+		<div class='main container' style='min-height: 300px;'>
+			<!-- 如未登录,则提示登录 -->
+			<div class='pad' style='padding:10px'>
+				<div th:if="${session.user!=null}">
+					<img th:src='@{/img/message.png}' style='width:16px;transform:translateY(2px)'>
+					<a th:href='@{/u/message/add}'> 发表帖子 </a>
+				</div>
+			</div>
+
+
+			<div class='list'>
+				<div class='topbar'>
+					<span class='label' style='vertical-align: middle'>帖子列表</span>
+				</div>
+
+				<div class='item' th:each=" row , state: ${messageList} ">
+					<div>
+						<div class='c1'>
+							<span class='replycount'>[[${row.numReply}]]</span>
+						</div>
+
+						<div class='c2'>
+
+							<!-- 置顶的帖子 -->
+							<div th:if='${row.topFlag>0}'>
+								<img th:src='@{/img/top.png}' style='width:14px'>
+								<a class='wrap' style='font-weight: bold;color:#111'
+									th:text="${row.title}" th:href='@{/reply/list(messageId=${row.id})}'></a>							
+							</div>
+							<!-- 不是置顶的帖子 -->
+							<div th:if='${row.topFlag==0}'>
+								<!-- 加精的帖子 -->
+								<img th:if='${row.niceFlag>0}'
+									th:src='@{/img/nice.png}' style='width:14px'>
+								<a class='wrap' th:text="${row.title}" th:href='@{/reply/list(messageId=${row.id})}'>  </a>							
+							</div>
+							
+							
+							
+							<div class='wrap' style='font-size:13px;color:#444;margin-top:6px'>
+								[[${row.replyText}]]
+							</div>
+							
+							
+						</div>
+
+						<div class='c3'>
+							<div>
+								<img th:src='@{/img/user2.png}' style='width:12px'>
+								<span>[[${#strings.abbreviate(row.userName,12)}]]</span>
+							</div>
+							<div style='font-size:12px;color:#444;margin-top:12px'>
+								<img th:src='@{/img/message.png}' style='width:12px'>
+								<span>[[${#strings.abbreviate(row.replyName,12)}]]</span>
+							</div>
+						</div>
+
+						<div class='c4'>
+							<span>[[${row.replyTime}]]</span>
+						</div>
+					</div>
+				</div>
+
+				<div class='bottombar'>
+					<div class='page-index-bar' style='margin:0px'></div>
+				</div>
+			</div>
+		</div>
+
+
+		<br><br>
+		</div>
+	</body>
+
+	<script>
+		var my = {};
+
+		var pageCount = [[${pageCount}]];
+		var pageNumber = [[${pageNumber}]];
+		var serviceUri = '[[@{/message/list}]]'; // 当前查询的URI
+
+		// 初始化执行: 分页显示
+		my.initPage = function() {
+			var str = "";
+			var skipped = false;
+			for (var i = 1; i <= pageCount; i++) {
+				// 如果页面数过多，则添加一个省略号
+				if (i < pageNumber - 2 && i >= 2) {
+					if (!skipped) str += "...";
+					skipped = true;
+					continue;
+				}
+				if (i > pageNumber + 2 && i <= pageCount - 1) {
+					if (!skipped) str += "...";
+					skipped = true;
+					continue;
+				}
+				skipped = false;
+
+				// 当前页码： 以高亮显示
+				if (i == pageNumber)
+					str += "<label class='page static'> ##1 </label>".replace(/##1/g, i);
+				else
+					str += "<a class='page' href='##0?pageNumber=##1'> ##1 </a>"
+					.replace(/##0/g, serviceUri)
+					.replace(/##1/g, i);
+
+				$('.page-index-bar').html(str);
+			}
+		}(); // 立即执行 my.initPage()
+	</script>
+</html>

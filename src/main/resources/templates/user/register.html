@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	<head>
+		<meta charset="utf-8">
+		<title>我的论坛</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+
+		
+		<script th:src="@{/js/jquery.min.js}" ></script>
+		<script th:src="@{/js/afquery.js}" ></script>
+		<link rel="stylesheet" th:href="@{/css/common.css}" />
+
+		<style>
+
+			.main{
+				width: 500px;
+				padding : 10px;
+				
+				margin: 40px auto auto auto;
+				background-color: #fcfcfc;
+				border-radius: 10px;
+			}
+			
+			.head{
+				position: relative;
+				padding: 2px 2px ;
+				border-bottom: 1px solid #f1f1f1;
+				background-color: #fcfcfc;				
+				text-align: center;
+				height: 50px;
+				line-height: 46px;				
+			}			
+			.head .icon{
+				font-family: '黑体';
+				width:20px;
+				vertical-align: middle;
+			}
+			
+			.form{
+				width: 100%;
+				margin: 40px auto;
+			}
+			.label{
+				display: inline-block;
+				width: 100px;
+				text-align: right;
+			}
+		</style>
+	</head>
+	<body>	<div class='container'>
+	
+		
+		<div class='main'>
+			<div class='head'>
+				我的论坛 | 用户注册
+			</div>
+			
+			<div class='form' >
+				<div class='row'>
+					<span class='label'> 用户名 </span>
+					<input class='name' type='text' style='width:300px'>
+				</div >
+				
+				<div class='row'>
+					<span class='label'> 密码 </span>
+					<input class='password' type='password' style='width:300px'>
+				</div>
+
+				<div class='row'>
+					<span class='label'> 确认 </span>
+					<input class='password2' type='password' style='width:300px'>
+				</div>
+								
+				<div class='row'>
+					<span class='label'> &nbsp; </span>
+					<button onclick='my.register()' class='primary' style='margin-top:40px'> 注册用户 </button>
+				</div>								
+			</div>
+		</div>
+
+	</div>
+	<script>
+		var my = {};
+		
+		my.register = function(){
+			var req = {};
+			req.name = $('.name').val().trim();
+			req.password = $('.password').val().trim();
+			var password2 = $('.password2').val().trim();
+			
+			if(req.name.length ==0){
+				alert('用户名不得为空!') ; return;
+			}
+			if(req.password != password2){
+				alert('密码不一致!');return;
+			}
+			
+			Af.rest('[[@{/register.do}]]'  , req, function(data){
+				alert('注册成功')
+				location.href = '[[@{/}]]' ;  // 跳到首页
+			})
+		}
+	</script>
+	</body>
+</html>
